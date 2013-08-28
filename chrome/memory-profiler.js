@@ -15,6 +15,8 @@ function getMemoryFootprint(url, outerId)
   gTotal = 0;
   let deferred = promise.defer();
   addChildObserversAndUpdate(() => {
+    let os = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+    os.removeObserver(gChildMemoryListener, "child-memory-reporter-update");
     deferred.resolve(processMemoryReporters(url, outerId));
   });
   return deferred.promise;
