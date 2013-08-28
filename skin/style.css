@@ -1,0 +1,13 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#body {
+  background: hsl(208,11%,27%);
+}
+
+#memory-used {
+  color: #fff;
+  font-size: 5em;
+  text-shadow: 1px 1px 2px black, 0 0 0.2em black, 0 0 0.2em black;
+}

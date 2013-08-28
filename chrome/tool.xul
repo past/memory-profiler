@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
+<?xml-stylesheet href="chrome://memory-profiler/skin/style.css" type="text/css"?>
+
+<!DOCTYPE window [
+<!ENTITY % MemoryProfilerDTD SYSTEM "chrome://memory-profiler/locale/strings.dtd">
+ %MemoryProfilerDTD;
+]>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/javascript" src="tool.js"/>
+  <script type="application/javascript" src="memory-profiler.js"/>
+  <hbox id="body" align="center" pack="center" flex="1">
+    <label id="memory-used" value="&memoryProfilerUI.label;"/>
+  </hbox>
+</window>

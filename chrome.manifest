@@ -1,0 +1,3 @@
+content memory-profiler chrome/
+locale  memory-profiler en-US locale/en-US/
+skin    memory-profiler classic/1.0 skin/
