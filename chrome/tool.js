@@ -23,7 +23,7 @@ function startup(aToolbox) {
     }).then(null, console.error);
   };
 
-  gInterval = window.setInterval(worker.bind(null, url), 2000);
+  gInterval = window.setInterval(worker.bind(null, url), 1000);
   return promise.resolve(null);
 }
 
