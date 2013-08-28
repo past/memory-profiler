@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/widgets.css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/profiler.css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/widgets.css"?>
 <?xml-stylesheet href="chrome://memory-profiler/skin/style.css" type="text/css"?>
 
 <!DOCTYPE window [
@@ -11,7 +14,29 @@
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript" src="tool.js"/>
   <script type="application/javascript" src="memory-profiler.js"/>
-  <hbox id="body" align="center" pack="center" flex="1">
-    <label id="memory-used" value="&memoryProfilerUI.label;"/>
-  </hbox>
+  <box flex="1" id="profiler-chrome" class="devtools-responsive-container">
+    <vbox class="profiler-sidebar">
+      <toolbar class="devtools-toolbar">
+        <hbox id="profiler-controls">
+          <toolbarbutton id="profiler-start"
+            class="devtools-toolbarbutton"
+            disabled="true"/>
+        </hbox>
+      </toolbar>
+
+      <vbox id="profiles-list" flex="1" align="center" pack="center">
+        <label id="memory-used" value="&memoryProfilerUI.label;"/>
+      </vbox>
+    </vbox>
+
+    <splitter class="devtools-side-splitter"/>
+
+    <vbox flex="1">
+      <toolbar class="devtools-toolbar">
+      </toolbar>
+
+      <vbox flex="1" id="profiler-report">
+      </vbox>
+    </vbox>
+  </box>
 </window>

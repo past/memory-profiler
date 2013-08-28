@@ -6,12 +6,13 @@ let gMgr = Cc["@mozilla.org/memory-reporter-manager;1"]
              .getService(Ci.nsIMemoryReporterManager);
 
 let gChildMemoryListener = undefined;
-let gTotal = 0;
+let gTotal;
 
 // Returns a promise of the memory footprint of the tab with the specified
 // URL and (optionally) outer window ID.
 function getMemoryFootprint(url, outerId)
 {
+  gTotal = 0;
   let deferred = promise.defer();
   addChildObserversAndUpdate(() => {
     deferred.resolve(processMemoryReporters(url, outerId));

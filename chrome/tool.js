@@ -13,15 +13,21 @@ XPCOMUtils.defineLazyModuleGetter(this, "EventEmitter",
 XPCOMUtils.defineLazyModuleGetter(this, "promise",
   "resource://gre/modules/commonjs/sdk/core/promise.js", "Promise");
 
+let gInterval;
+
 function startup(aToolbox) {
   let url = aToolbox.target.window.location.href;
+  function worker(url) {
+    getMemoryFootprint(url).then(mem => {
+      document.getElementById("memory-used").value = mem;
+    }).then(null, console.error);
+  };
 
-  getMemoryFootprint(url).then(mem => {
-    document.getElementById("memory-used").value = mem;
-  }).then(null, console.error);
+  gInterval = window.setInterval(worker.bind(null, url), 2000);
   return promise.resolve(null);
 }
 
 function shutdown() {
+  window.clearInterval(gInterval);
   return promise.resolve(null);
 }
