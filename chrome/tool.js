@@ -27,8 +27,10 @@ function startup(aToolbox) {
     Services.prefs.setBoolPref("javascript.options.mem.notify", true);
   }
 
-  let btn = document.getElementById("profiler-start");
-  btn.addEventListener("click", toggleRecording, false);
+  let rec = document.getElementById("profiler-start");
+  rec.addEventListener("click", toggleRecording, false);
+  let about = document.getElementById("about-memory");
+  about.addEventListener("click", openAboutMemory, false);
 
   let graphPane = document.getElementById("profiler-report");
   gCanvas = createCanvas({ width: graphPane.clientWidth - 8,
@@ -51,15 +53,17 @@ function shutdown() {
     toggleRecording();
   }
 
-  let btn = document.getElementById("profiler-start");
-  btn.removeEventListener("click", toggleRecording, false);
+  let rec = document.getElementById("profiler-start");
+  rec.removeEventListener("click", toggleRecording, false);
+  let about = document.getElementById("about-memory");
+  about.removeEventListener("click", openAboutMemory, false);
   return promise.resolve(null);
 }
 
 function toggleRecording() {
-  let btn = document.getElementById("profiler-start");
+  let rec = document.getElementById("profiler-start");
   if (!gRunning) {
-    btn.setAttribute("checked", true);
+    rec.setAttribute("checked", true);
     resetGraph();
     document.getElementById("memory-used").value = "";
     Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
@@ -67,7 +71,7 @@ function toggleRecording() {
 
     gInterval = window.setInterval(worker.bind(null, gUrl), 1000);
   } else {
-    btn.removeAttribute("checked");
+    rec.removeAttribute("checked");
     Services.obs.removeObserver(gclogger, "cycle-collection-statistics", false);
     Services.obs.removeObserver(gclogger, "garbage-collection-statistics", false);
 
@@ -76,6 +80,27 @@ function toggleRecording() {
     gEvents = [];
   }
   gRunning = !gRunning;
+}
+
+function openAboutMemory() {
+  let aboutTab;
+  let tabbrowser = window.top.gBrowser;
+  var numTabs = tabbrowser.browsers.length;
+  for (var index = 0; index < numTabs; index++) {
+    var currentBrowser = tabbrowser.getBrowserAtIndex(index);
+    if ("about:memory" == currentBrowser.currentURI.spec) {
+
+      // The URL is already opened. Select this tab.
+      tabbrowser.selectedTab = tabbrowser.tabContainer.childNodes[index];
+      found = true;
+      break;
+    }
+  }
+
+  if (!aboutTab) {
+    aboutTab = tabbrowser.addTab("about:memory");
+  }
+  tabbrowser.selectedTab = aboutTab;
 }
 
 function worker(url) {
