@@ -13,6 +13,7 @@
 
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript" src="tool.js"/>
+  <script type="application/javascript" src="graph.js"/>
   <script type="application/javascript" src="memory-profiler.js"/>
   <box flex="1" id="profiler-chrome" class="devtools-responsive-container">
     <vbox class="profiler-sidebar">
@@ -36,6 +37,7 @@
       </toolbar>
 
       <vbox flex="1" id="profiler-report">
+        <div id="graph"></div>
       </vbox>
     </vbox>
   </box>

@@ -48,7 +48,7 @@ function processMemoryReporters(url, outerId)
     }
     mr.collectReports(handleReport, null);
   }
-  return formatBytes(gTotal);
+  return gTotal;
 }
 
 function flipBackslashes(aUnsafeStr)

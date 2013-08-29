@@ -14,16 +14,29 @@ XPCOMUtils.defineLazyModuleGetter(this, "promise",
   "resource://gre/modules/commonjs/sdk/core/promise.js", "Promise");
 
 let gInterval;
+let gMeasurements = [];
 
 function startup(aToolbox) {
-  let url = aToolbox.target.window.location.href;
-  function worker(url) {
+  function worker(url, canvas) {
     getMemoryFootprint(url).then(mem => {
-      document.getElementById("memory-used").value = mem;
+      document.getElementById("memory-used").value = formatBytes(mem);
+      gMeasurements.push(mem);
+      graph(canvas, gMeasurements);
     }).then(null, console.error);
   };
 
-  gInterval = window.setInterval(worker.bind(null, url), 1000);
+  let url = aToolbox.target.window.location.href;
+  let graphPane = document.getElementById("profiler-report");
+  try {
+    var canvas = createCanvas({ width: graphPane.clientWidth,
+                          height: graphPane.clientHeight });
+    document.getElementById("graph").appendChild(canvas.element);
+  } catch(e) {
+    console.error(e);
+  }
+
+  gInterval = window.setInterval(worker.bind(null, url, canvas), 1000);
+
   return promise.resolve(null);
 }
 
