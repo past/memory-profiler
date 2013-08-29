@@ -15,21 +15,30 @@ XPCOMUtils.defineLazyModuleGetter(this, "promise",
 
 let gInterval;
 let gMeasurements = [];
+let gEvents = [];
+let gResetPref;
 
 function startup(aToolbox) {
+ if (!Services.prefs.getBoolPref("javascript.options.mem.notify")) {
+    gResetPref = true;
+    Services.prefs.setBoolPref("javascript.options.mem.notify", true);
+  }
+  Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
+  Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
+
   function worker(url, canvas) {
     getMemoryFootprint(url).then(mem => {
       document.getElementById("memory-used").value = formatBytes(mem);
       gMeasurements.push(mem);
-      graph(canvas, gMeasurements);
+      graph(canvas, gMeasurements, gEvents);
     }).then(null, console.error);
   };
 
   let url = aToolbox.target.window.location.href;
   let graphPane = document.getElementById("profiler-report");
   try {
-    var canvas = createCanvas({ width: graphPane.clientWidth,
-                          height: graphPane.clientHeight });
+    var canvas = createCanvas({ width: graphPane.clientWidth - 8,
+                                height: graphPane.clientHeight - 8 });
     document.getElementById("graph").appendChild(canvas.element);
   } catch(e) {
     console.error(e);
@@ -42,5 +51,20 @@ function startup(aToolbox) {
 
 function shutdown() {
   window.clearInterval(gInterval);
+  Services.obs.removeObserver(gclogger, "cycle-collection-statistics", false);
+  Services.obs.removeObserver(gclogger, "garbage-collection-statistics", false);
+
+  if (gResetPref) {
+    Services.prefs.setBoolPref("javascript.options.mem.notify", false);
+    gResetPref = false;
+  }
   return promise.resolve(null);
+}
+
+function gclogger(subject, topic, data) {
+  if (topic == "cycle-collection-statistics") {
+    gEvents.push({ type: "cc", time: gMeasurements.length });
+  } else {
+    gEvents.push({ type: "gc", time: gMeasurements.length });
+  }
 }
