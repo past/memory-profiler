@@ -22,19 +22,20 @@ function createCanvas(opts) {
 function graph(canvas, values) {
   let ctx = canvas.context;
   let element = canvas.element;
-  let num = values.length;
+  let h = element.clientHeight;
+  let w = element.clientWidth;
+  let count = values.length;
   let max = Math.max.apply(null, values);
 
   // Clear the existing graph.
   ctx.clearRect(0, 0, element.width, element.height);
   // Draw the new one.
   ctx.strokeStyle = "steelblue";
-  ctx.fillStyle = "steelblue";
   ctx.beginPath();
-  ctx.moveTo(0, element.clientHeight * values[0] / max);
-  for (let i = 0, len = num; i <= len - 1; i++) {
-    ctx.lineTo(element.clientWidth * (i + 1) / num,
-               element.clientHeight * values[i] / max);
+  ctx.moveTo(0, h - (h * values[0] / max));
+  for (let i = 0, len = count; i <= len - 1; i++) {
+    ctx.lineTo(w * (i + 1) / count,
+               h - (h * values[i] / max));
   }
   ctx.stroke();
 }
