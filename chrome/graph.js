@@ -19,9 +19,9 @@ function createCanvas(opts) {
   };
 }
 
-function graph(canvas, values, gcevents) {
-  let ctx = canvas.context;
-  let element = canvas.element;
+function graph(values, gcevents) {
+  let ctx = gCanvas.context;
+  let element = gCanvas.element;
   let h = element.clientHeight;
   let w = element.clientWidth;
   let count = values.length;
@@ -71,6 +71,23 @@ function graph(canvas, values, gcevents) {
   ctx.stroke();
   ctx.closePath();
 
+  // Draw the background.
+  ctx.strokeStyle = "white";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, h);
+  ctx.lineTo(w, h);
+  ctx.stroke();
+  ctx.closePath();
+}
+
+function resetGraph() {
+  let ctx = gCanvas.context;
+  let element = gCanvas.element;
+  let h = element.clientHeight;
+  let w = element.clientWidth;
+
+  ctx.clearRect(0, 0, element.width, element.height);
   // Draw the background.
   ctx.strokeStyle = "white";
   ctx.beginPath();

@@ -20,8 +20,7 @@
       <toolbar class="devtools-toolbar">
         <hbox id="profiler-controls">
           <toolbarbutton id="profiler-start"
-            class="devtools-toolbarbutton"
-            disabled="true"/>
+            class="devtools-toolbarbutton"/>
         </hbox>
       </toolbar>
 

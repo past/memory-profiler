@@ -17,52 +17,77 @@ let gInterval;
 let gMeasurements = [];
 let gEvents = [];
 let gResetPref;
+let gRunning = false;
+let gCanvas;
+let gUrl;
 
 function startup(aToolbox) {
  if (!Services.prefs.getBoolPref("javascript.options.mem.notify")) {
     gResetPref = true;
     Services.prefs.setBoolPref("javascript.options.mem.notify", true);
   }
-  Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
-  Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
 
-  function worker(url, canvas) {
-    let start = Date.now();
-    getMemoryFootprint(url).then(mem => {
-      document.getElementById("memory-used").value = formatBytes(mem);
-      gMeasurements.push(mem);
-      graph(canvas, gMeasurements, gEvents);
-      let end = Date.now();
-      console.log("Duration: "+(end-start)+" ms");
-    }).then(null, console.error);
-  };
+  let btn = document.getElementById("profiler-start");
+  btn.addEventListener("click", toggleRecording, false);
 
-  let url = aToolbox.target.window.location.href;
   let graphPane = document.getElementById("profiler-report");
-  try {
-    var canvas = createCanvas({ width: graphPane.clientWidth - 8,
-                                height: graphPane.clientHeight - 8 });
-    document.getElementById("graph").appendChild(canvas.element);
-  } catch(e) {
-    console.error(e);
-  }
+  gCanvas = createCanvas({ width: graphPane.clientWidth - 8,
+                           height: graphPane.clientHeight - 8 });
+  document.getElementById("graph").appendChild(gCanvas.element);
+  resetGraph();
 
-  gInterval = window.setInterval(worker.bind(null, url, canvas), 1000);
+  gUrl = aToolbox.target.window.location.href;
 
   return promise.resolve(null);
 }
 
 function shutdown() {
-  window.clearInterval(gInterval);
-  Services.obs.removeObserver(gclogger, "cycle-collection-statistics", false);
-  Services.obs.removeObserver(gclogger, "garbage-collection-statistics", false);
-
   if (gResetPref) {
     Services.prefs.setBoolPref("javascript.options.mem.notify", false);
     gResetPref = false;
   }
+
+  if (gRunning) {
+    toggleRecording();
+  }
+
+  let btn = document.getElementById("profiler-start");
+  btn.removeEventListener("click", toggleRecording, false);
   return promise.resolve(null);
 }
+
+function toggleRecording() {
+  let btn = document.getElementById("profiler-start");
+  if (!gRunning) {
+    btn.setAttribute("checked", true);
+    resetGraph();
+    document.getElementById("memory-used").value = "";
+    Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
+    Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
+
+    gInterval = window.setInterval(worker.bind(null, gUrl), 1000);
+  } else {
+    btn.removeAttribute("checked");
+    Services.obs.removeObserver(gclogger, "cycle-collection-statistics", false);
+    Services.obs.removeObserver(gclogger, "garbage-collection-statistics", false);
+
+    window.clearInterval(gInterval);
+    gMeasurements = [];
+    gEvents = [];
+  }
+  gRunning = !gRunning;
+}
+
+function worker(url) {
+  let start = Date.now();
+  getMemoryFootprint(url).then(mem => {
+    document.getElementById("memory-used").value = formatBytes(mem);
+    gMeasurements.push(mem);
+    graph(gMeasurements, gEvents);
+    let end = Date.now();
+    console.log("Duration: "+(end-start)+" ms");
+  }).then(null, console.error);
+};
 
 function gclogger(subject, topic, data) {
   if (topic == "cycle-collection-statistics") {
