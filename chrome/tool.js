@@ -27,10 +27,13 @@ function startup(aToolbox) {
   Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
 
   function worker(url, canvas) {
+    let start = Date.now();
     getMemoryFootprint(url).then(mem => {
       document.getElementById("memory-used").value = formatBytes(mem);
       gMeasurements.push(mem);
       graph(canvas, gMeasurements, gEvents);
+      let end = Date.now();
+      console.log("Duration: "+(end-start)+" ms");
     }).then(null, console.error);
   };
 
