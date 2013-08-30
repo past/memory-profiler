@@ -17,7 +17,6 @@ let gInterval;
 let gMeasurements = {
   total: [],
   dom: [],
-  layout: [],
   js: [],
   other: []
 };
@@ -46,6 +45,9 @@ function startup(aToolbox) {
 
   gUrl = aToolbox.target.window.location.href;
 
+  let browser = window.top.gBrowser.selectedBrowser;
+  browser.addEventListener("DOMWindowCreated", onWindowCreated, false);
+
   return promise.resolve(null);
 }
 
@@ -63,6 +65,10 @@ function shutdown() {
   rec.removeEventListener("click", toggleRecording, false);
   let about = document.getElementById("about-memory");
   about.removeEventListener("click", openAboutMemory, false);
+
+  let browser = window.top.gBrowser.selectedBrowser;
+  browser.removeEventListener("DOMWindowCreated", onWindowCreated, false);
+
   return promise.resolve(null);
 }
 
@@ -85,7 +91,6 @@ function toggleRecording() {
     gMeasurements = {
       total: [],
       dom: [],
-      layout: [],
       js: [],
       other: []
     };
@@ -121,7 +126,6 @@ function worker(url) {
     document.getElementById("memory-used").value = formatBytes(mem.total);
     gMeasurements.total.push(mem.total);
     gMeasurements.dom.push(mem.dom);
-    gMeasurements.layout.push(mem.layout);
     gMeasurements.js.push(mem.js);
     gMeasurements.other.push(mem.other);
     graph(gMeasurements, gEvents);
@@ -136,4 +140,8 @@ function gclogger(subject, topic, data) {
   } else {
     gEvents.push({ type: "gc", time: gMeasurements.total.length });
   }
+}
+
+function onWindowCreated() {
+  gUrl = window.top.gBrowser.selectedBrowser.contentWindow.location.href;
 }

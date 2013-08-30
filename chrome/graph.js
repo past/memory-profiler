@@ -42,12 +42,12 @@ function graph(values, gcevents) {
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
   ctx.closePath();
-  ctx.fillStyle = "rgb(173, 181, 194)";
+  ctx.fillStyle = "#353c45";
   ctx.fill();
 
   // Graph the rest of the categories.
-  let categories = [ "dom", "layout", "js", "other" ];
-  let colors = [ "lightgreen", "lightyellow", "steelblue", "orange" ];
+  let categories = [ "dom", "js", "other" ];
+  let colors = [ "#b987bc", "#46afe3", "#6b7abb" ];
   for (let c = 0; c < categories.length; c++) {
     let catCount = values[categories[c]].length;
     ctx.beginPath();
@@ -66,7 +66,7 @@ function graph(values, gcevents) {
   // Draw the GC markers.
   let eventCount = gcevents.length;
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(0, 0, 255, 0.2)";
+  ctx.strokeStyle = "rgba(70, 175, 227, 0.3)";
   for (let i = 0, len = eventCount; i <= len - 1; i++) {
     if (gcevents[i].type == "gc") {
       let x = w * (gcevents[i].time + 1) / count;
@@ -79,7 +79,7 @@ function graph(values, gcevents) {
 
   // Draw the CC markers.
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(0, 255, 0, 0.4)";
+  ctx.strokeStyle = "rgba(185, 135, 188, 0.3)";
   for (let i = 0, len = eventCount; i <= len - 1; i++) {
     if (gcevents[i].type == "cc") {
       let x = w * (gcevents[i].time + 1) / count;

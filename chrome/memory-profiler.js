@@ -12,7 +12,7 @@ let gResult = {};
 // URL and (optionally) outer window ID.
 function getMemoryFootprint(url, outerId)
 {
-  gResult = { total: 0, dom: 0, layout: 0, js: 0, other: 0 };
+  gResult = { total: 0, dom: 0, js: 0, other: 0 };
   let deferred = promise.defer();
   addChildObserversAndUpdate(() => {
     let os = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
@@ -50,8 +50,6 @@ function processMemoryReporters(url, outerId)
         str = str.slice(index+url.length);
         if (str.contains("/dom/")) {
           gResult.dom += aAmount;
-        } else if (str.contains("/layout/")) {
-          gResult.layout += aAmount;
         } else if (str.contains("/objects/")) {
           gResult.js += aAmount;
         } else {
