@@ -27,6 +27,8 @@ function graph(values, gcevents) {
   let count = values.total.length;
   let max = Math.max.apply(null, values.total);
   let min = Math.min.apply(null, values.total);
+  // Use half the canvas when min and max aren't that far off.
+  let top = min > max * 0.1 ? h / 2 : h;
 
   // Clear the existing graph before drawing the new one.
   ctx.clearRect(0, 0, element.width, element.height);
@@ -34,10 +36,10 @@ function graph(values, gcevents) {
   ctx.lineJoin = "round";
   // Graph the total memory allocated.
   ctx.beginPath();
-  ctx.moveTo(0, h - (h * values.total[0] / max));
+  ctx.moveTo(0, h - (top * values.total[0] / max));
   for (let i = 0, len = count; i <= len - 1; i++) {
     ctx.lineTo(w * (i + 1) / count,
-               h - (h * values.total[i] / max));
+               h - (top * values.total[i] / max));
   }
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
@@ -55,10 +57,10 @@ function graph(values, gcevents) {
     let catCount = values[categories[c]].length;
     ctx.beginPath();
     ctx.strokeStyle = colors[c];
-    ctx.moveTo(0, h - (h * values[categories[c]][0] / max));
+    ctx.moveTo(0, h - (top * values[categories[c]][0] / max));
     for (let i = 0, len = catCount; i <= len - 1; i++) {
       ctx.lineTo(w * (i + 1) / catCount,
-                 h - (h * values[categories[c]][i] / max));
+                 h - (top * values[categories[c]][i] / max));
     }
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
