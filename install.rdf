@@ -9,7 +9,7 @@
     <em:id>memory-profiler@astithas.com</em:id>
 
     <!-- A version string identifying the version of the add-on. -->
-    <em:version>0.2</em:version>
+    <em:version>0.3</em:version>
 
     <!-- The name of the add-on; intended for display in the UI. -->
     <em:name>Memory Profiler</em:name>
