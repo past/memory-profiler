@@ -81,7 +81,7 @@ function toggleRecording() {
     Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
     Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
 
-    gInterval = window.setInterval(worker.bind(null, gUrl), 1000);
+    gInterval = window.setInterval(worker, 1000);
   } else {
     rec.removeAttribute("checked");
     Services.obs.removeObserver(gclogger, "cycle-collection-statistics", false);
@@ -120,9 +120,9 @@ function openAboutMemory() {
   tabbrowser.selectedTab = aboutTab;
 }
 
-function worker(url) {
+function worker() {
   let start = Date.now();
-  getMemoryFootprint(url).then(mem => {
+  getMemoryFootprint(gUrl).then(mem => {
     document.getElementById("memory-used").value = formatBytes(mem.total);
     gMeasurements.total.push(mem.total);
     gMeasurements.dom.push(mem.dom);
