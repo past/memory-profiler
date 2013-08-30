@@ -25,6 +25,7 @@ let gResetPref;
 let gRunning = false;
 let gCanvas;
 let gUrl;
+let gWorking;
 
 function startup(aToolbox) {
  if (!Services.prefs.getBoolPref("javascript.options.mem.notify")) {
@@ -121,6 +122,10 @@ function openAboutMemory() {
 }
 
 function worker() {
+  // Make sure that we never launch two workers simultaneously.
+  if (gWorking) return;
+  gWorking = true;
+
   let start = Date.now();
   getMemoryFootprint(gUrl).then(mem => {
     document.getElementById("memory-used").value = formatBytes(mem.total);
@@ -131,6 +136,7 @@ function worker() {
     graph(gMeasurements, gEvents);
     let end = Date.now();
     console.log("Duration: "+(end-start)+" ms");
+    gWorking = false;
   }).then(null, console.error);
 };
 
