@@ -16,4 +16,5 @@
 #graph {
   overflow: hidden;
   padding: 4px;
+  background-image: linear-gradient(hsl(208,11%,37%), hsl(208,11%,27%));
 }

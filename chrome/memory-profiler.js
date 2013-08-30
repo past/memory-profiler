@@ -6,13 +6,13 @@ let gMgr = Cc["@mozilla.org/memory-reporter-manager;1"]
              .getService(Ci.nsIMemoryReporterManager);
 
 let gChildMemoryListener = undefined;
-let gTotal;
+let gResult = {};
 
 // Returns a promise of the memory footprint of the tab with the specified
 // URL and (optionally) outer window ID.
 function getMemoryFootprint(url, outerId)
 {
-  gTotal = 0;
+  gResult = { total: 0, dom: 0, layout: 0, js: 0, other: 0 };
   let deferred = promise.defer();
   addChildObserversAndUpdate(() => {
     let os = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
@@ -43,12 +43,25 @@ function processMemoryReporters(url, outerId)
       if (!aUnsafePath.contains("strings/notable/string") &&
           flipBackslashes(aUnsafePath).contains(url) &&
           (!outerId || aUnsafePath.contains(", id=" + outerId))) {
-        gTotal += aAmount;
+        gResult.total += aAmount;
+        // Now collect the more detailed measurements.
+        let str = flipBackslashes(aUnsafePath);
+        let index = str.lastIndexOf(url);
+        str = str.slice(index+url.length);
+        if (str.contains("/dom/")) {
+          gResult.dom += aAmount;
+        } else if (str.contains("/layout/")) {
+          gResult.layout += aAmount;
+        } else if (str.contains("/objects/")) {
+          gResult.js += aAmount;
+        } else {
+          gResult.other += aAmount;
+        }
       }
     }
     mr.collectReports(handleReport, null);
   }
-  return gTotal;
+  return gResult;
 }
 
 function flipBackslashes(aUnsafeStr)

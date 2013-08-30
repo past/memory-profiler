@@ -24,19 +24,20 @@ function graph(values, gcevents) {
   let element = gCanvas.element;
   let h = element.clientHeight;
   let w = element.clientWidth;
-  let count = values.length;
-  let max = Math.max.apply(null, values);
-  let min = Math.min.apply(null, values);
+  let count = values.total.length;
+  let max = Math.max.apply(null, values.total);
+  let min = Math.min.apply(null, values.total);
 
-  // Clear the existing graph.
+  // Clear the existing graph before drawing the new one.
   ctx.clearRect(0, 0, element.width, element.height);
 
-  // Draw the new graph.
+  ctx.lineJoin = "round";
+  // Graph the total memory allocated.
   ctx.beginPath();
-  ctx.moveTo(0, h - (h * values[0] / max));
+  ctx.moveTo(0, h - (h * values.total[0] / max));
   for (let i = 0, len = count; i <= len - 1; i++) {
     ctx.lineTo(w * (i + 1) / count,
-               h - (h * values[i] / max));
+               h - (h * values.total[i] / max));
   }
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
@@ -44,10 +45,28 @@ function graph(values, gcevents) {
   ctx.fillStyle = "rgb(173, 181, 194)";
   ctx.fill();
 
+  // Graph the rest of the categories.
+  let categories = [ "dom", "layout", "js", "other" ];
+  let colors = [ "lightgreen", "lightyellow", "steelblue", "orange" ];
+  for (let c = 0; c < categories.length; c++) {
+    let catCount = values[categories[c]].length;
+    ctx.beginPath();
+    ctx.strokeStyle = colors[c];
+    ctx.moveTo(0, h - (h * values[categories[c]][0] / max));
+    for (let i = 0, len = catCount; i <= len - 1; i++) {
+      ctx.lineTo(w * (i + 1) / catCount,
+                 h - (h * values[categories[c]][i] / max));
+    }
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.stroke();
+    ctx.closePath();
+  }
+
   // Draw the GC markers.
   let eventCount = gcevents.length;
   ctx.beginPath();
-  ctx.strokeStyle = "steelblue";
+  ctx.strokeStyle = "rgba(0, 0, 255, 0.2)";
   for (let i = 0, len = eventCount; i <= len - 1; i++) {
     if (gcevents[i].type == "gc") {
       let x = w * (gcevents[i].time + 1) / count;
@@ -60,7 +79,7 @@ function graph(values, gcevents) {
 
   // Draw the CC markers.
   ctx.beginPath();
-  ctx.strokeStyle = "lightgreen";
+  ctx.strokeStyle = "rgba(0, 255, 0, 0.4)";
   for (let i = 0, len = eventCount; i <= len - 1; i++) {
     if (gcevents[i].type == "cc") {
       let x = w * (gcevents[i].time + 1) / count;

@@ -14,7 +14,13 @@ XPCOMUtils.defineLazyModuleGetter(this, "promise",
   "resource://gre/modules/commonjs/sdk/core/promise.js", "Promise");
 
 let gInterval;
-let gMeasurements = [];
+let gMeasurements = {
+  total: [],
+  dom: [],
+  layout: [],
+  js: [],
+  other: []
+};
 let gEvents = [];
 let gResetPref;
 let gRunning = false;
@@ -76,7 +82,13 @@ function toggleRecording() {
     Services.obs.removeObserver(gclogger, "garbage-collection-statistics", false);
 
     window.clearInterval(gInterval);
-    gMeasurements = [];
+    gMeasurements = {
+      total: [],
+      dom: [],
+      layout: [],
+      js: [],
+      other: []
+    };
     gEvents = [];
   }
   gRunning = !gRunning;
@@ -106,8 +118,12 @@ function openAboutMemory() {
 function worker(url) {
   let start = Date.now();
   getMemoryFootprint(url).then(mem => {
-    document.getElementById("memory-used").value = formatBytes(mem);
-    gMeasurements.push(mem);
+    document.getElementById("memory-used").value = formatBytes(mem.total);
+    gMeasurements.total.push(mem.total);
+    gMeasurements.dom.push(mem.dom);
+    gMeasurements.layout.push(mem.layout);
+    gMeasurements.js.push(mem.js);
+    gMeasurements.other.push(mem.other);
     graph(gMeasurements, gEvents);
     let end = Date.now();
     console.log("Duration: "+(end-start)+" ms");
@@ -116,8 +132,8 @@ function worker(url) {
 
 function gclogger(subject, topic, data) {
   if (topic == "cycle-collection-statistics") {
-    gEvents.push({ type: "cc", time: gMeasurements.length });
+    gEvents.push({ type: "cc", time: gMeasurements.total.length });
   } else {
-    gEvents.push({ type: "gc", time: gMeasurements.length });
+    gEvents.push({ type: "gc", time: gMeasurements.total.length });
   }
 }
