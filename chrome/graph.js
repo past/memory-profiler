@@ -97,10 +97,6 @@ function graph(values, gcevents) {
 
   // Display the total memory usage.
   ctx.font = "14px Arial";
-  ctx.shadowOffsetX = 2;
-  ctx.shadowOffsetY = 2;
-  ctx.shadowBlur = 2;
-  ctx.shadowColor = "rgba(160, 160, 150, 0.5)";
   ctx.beginPath();
   ctx.fillStyle = "#b6babf";
   let text = formatBytes(values.total[values.total.length-1]);
