@@ -44,7 +44,7 @@ function graph(values, gcevents) {
   ctx.lineTo(0, 0);
   ctx.fillStyle = "#353c45";
   ctx.fill();
-  ctx.strokeStyle = "#797f90";
+  ctx.strokeStyle = "#525c66";
   ctx.stroke();
   ctx.closePath();
 
