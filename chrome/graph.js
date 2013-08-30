@@ -41,9 +41,12 @@ function graph(values, gcevents) {
   }
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
-  ctx.closePath();
+  ctx.lineTo(0, 0);
   ctx.fillStyle = "#353c45";
   ctx.fill();
+  ctx.strokeStyle = "#797f90";
+  ctx.stroke();
+  ctx.closePath();
 
   // Graph the rest of the categories.
   let categories = [ "dom", "js", "other" ];
