@@ -15,7 +15,7 @@ xpi:
 latest:
 	@echo "Building latest '${XPI}'..."
 	@mkdir -p ${BUILD}
-	@zip -r ${XPI} * -x "${BUILD}/*" -x "Makefile" -x ".git/*"
+	@zip -r ${XPI} * -x "${BUILD}/*" -x "Makefile" -x ".git/*" -x "memory.png"
 
 clean:
 	@echo "Removing '${PWD}/${BUILD}'..."
