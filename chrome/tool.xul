@@ -22,10 +22,10 @@
           <toolbarbutton id="profiler-start"
             class="devtools-toolbarbutton"/>
           <toolbarbutton id="gc"
-            class="devtools-toolbarbutton"
+            class="devtools-toolbarbutton color-legend"
             label="&gc.label;"/>
           <toolbarbutton id="cc"
-            class="devtools-toolbarbutton"
+            class="devtools-toolbarbutton color-legend"
             label="&cc.label;"/>
           <toolbarbutton id="minimize-memory"
             class="devtools-toolbarbutton"
