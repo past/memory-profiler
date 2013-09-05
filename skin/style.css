@@ -18,3 +18,8 @@
   padding: 4px;
   background: rgba(17, 19, 21, 1);
 }
+
+#gc,
+#cc {
+  min-width: 32px;
+}

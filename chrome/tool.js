@@ -36,6 +36,12 @@ function startup(aToolbox) {
 
   let rec = document.getElementById("profiler-start");
   rec.addEventListener("click", toggleRecording, false);
+  let gc = document.getElementById("gc");
+  gc.addEventListener("click", performGC, false);
+  let cc = document.getElementById("cc");
+  cc.addEventListener("click", performCC, false);
+  let minmem = document.getElementById("minimize-memory");
+  minmem.addEventListener("click", minimizeMemory, false);
   let about = document.getElementById("about-memory");
   about.addEventListener("click", openAboutMemory, false);
 
@@ -67,6 +73,12 @@ function shutdown() {
 
   let rec = document.getElementById("profiler-start");
   rec.removeEventListener("click", toggleRecording, false);
+  let gc = document.getElementById("gc");
+  gc.removeEventListener("click", performGC, false);
+  let cc = document.getElementById("cc");
+  cc.removeEventListener("click", performCC, false);
+  let minmem = document.getElementById("minimize-memory");
+  minmem.removeEventListener("click", minimizeMemory, false);
   let about = document.getElementById("about-memory");
   about.removeEventListener("click", openAboutMemory, false);
 
@@ -101,6 +113,26 @@ function toggleRecording() {
     gEvents = [];
   }
   gRunning = !gRunning;
+}
+
+function performGC() {
+  Cu.forceGC();
+  let os = Cc["@mozilla.org/observer-service;1"]
+             .getService(Ci.nsIObserverService);
+  os.notifyObservers(null, "child-gc-request", null);
+}
+
+function performCC() {
+  window.QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIDOMWindowUtils)
+        .cycleCollect();
+  let os = Cc["@mozilla.org/observer-service;1"]
+             .getService(Ci.nsIObserverService);
+  os.notifyObservers(null, "child-cc-request", null);
+}
+
+function minimizeMemory() {
+  gMgr.minimizeMemoryUsage();
 }
 
 function openAboutMemory() {

@@ -21,6 +21,15 @@
         <hbox id="profiler-controls">
           <toolbarbutton id="profiler-start"
             class="devtools-toolbarbutton"/>
+          <toolbarbutton id="gc"
+            class="devtools-toolbarbutton"
+            label="&gc.label;"/>
+          <toolbarbutton id="cc"
+            class="devtools-toolbarbutton"
+            label="&cc.label;"/>
+          <toolbarbutton id="minimize-memory"
+            class="devtools-toolbarbutton"
+            label="&minimizeMemory.label;"/>
           <toolbarbutton id="about-memory"
             class="devtools-toolbarbutton"
             label="&aboutMemory.label;"/>
