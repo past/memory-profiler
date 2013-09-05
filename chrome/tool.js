@@ -25,6 +25,7 @@ let gResetPref;
 let gRunning = false;
 let gCanvas;
 let gUrl;
+let gWindowId;
 let gWorking;
 
 function startup(aToolbox) {
@@ -45,6 +46,8 @@ function startup(aToolbox) {
   resetGraph();
 
   gUrl = aToolbox.target.window.location.href;
+  gWindowId = aToolbox.target.window.QueryInterface(Ci.nsIInterfaceRequestor).
+                       getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
 
   let browser = window.top.gBrowser.selectedBrowser;
   browser.addEventListener("DOMWindowCreated", onWindowCreated, false);
@@ -127,7 +130,7 @@ function worker() {
   gWorking = true;
 
   let start = Date.now();
-  getMemoryFootprint(gUrl).then(mem => {
+  getMemoryFootprint(gUrl, gWindowId).then(mem => {
     document.getElementById("memory-used").value = formatBytes(mem.total);
     gMeasurements.total.push(mem.total);
     gMeasurements.dom.push(mem.dom);
@@ -149,5 +152,8 @@ function gclogger(subject, topic, data) {
 }
 
 function onWindowCreated() {
-  gUrl = window.top.gBrowser.selectedBrowser.contentWindow.location.href;
+  let win = window.top.gBrowser.selectedBrowser.contentWindow;
+  gUrl = win.location.href;
+  gWindowId = win.QueryInterface(Ci.nsIInterfaceRequestor).
+                  getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
 }
