@@ -50,7 +50,7 @@ function processMemoryReporters(url, outerId)
         str = str.slice(index+url.length);
         if (str.contains("/dom/")) {
           gResult.dom += aAmount;
-        } else if (str.contains("/objects/")) {
+        } else if (str.contains("/objects/") || str.contains("/objects-extra/")) {
           gResult.js += aAmount;
         } else {
           gResult.other += aAmount;
