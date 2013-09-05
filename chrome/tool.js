@@ -12,6 +12,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "EventEmitter",
   "resource:///modules/devtools/shared/event-emitter.js");
 XPCOMUtils.defineLazyModuleGetter(this, "promise",
   "resource://gre/modules/commonjs/sdk/core/promise.js", "Promise");
+XPCOMUtils.defineLazyGetter(this, "toolStrings", () =>
+  Services.strings.createBundle("chrome://memory-profiler/locale/strings.properties"));
 
 let gInterval;
 let gMeasurements = {
@@ -120,6 +122,10 @@ function performGC() {
   let os = Cc["@mozilla.org/observer-service;1"]
              .getService(Ci.nsIObserverService);
   os.notifyObservers(null, "child-gc-request", null);
+
+  let gc = document.getElementById("gc");
+  let text = toolStrings.GetStringFromName("MemoryProfiler.gc");
+  displayNotification(text, gc);
 }
 
 function performCC() {
@@ -129,10 +135,16 @@ function performCC() {
   let os = Cc["@mozilla.org/observer-service;1"]
              .getService(Ci.nsIObserverService);
   os.notifyObservers(null, "child-cc-request", null);
+
+  let cc = document.getElementById("cc");
+  let text = toolStrings.GetStringFromName("MemoryProfiler.cc");
+  displayNotification(text, cc);
 }
 
 function minimizeMemory() {
-  gMgr.minimizeMemoryUsage();
+  let minmem = document.getElementById("minimize-memory");
+  let text = toolStrings.GetStringFromName("MemoryProfiler.minimizeMemory");
+  gMgr.minimizeMemoryUsage(() => displayNotification(text, minmem));
 }
 
 function openAboutMemory() {
@@ -188,4 +200,12 @@ function onWindowCreated() {
   gUrl = win.location.href;
   gWindowId = win.QueryInterface(Ci.nsIInterfaceRequestor).
                   getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+}
+
+function displayNotification(text, button) {
+  let messageNode = document.getElementById("message");
+  messageNode.setAttribute("value", text);
+
+  let messagePanel = document.getElementById("message-panel");
+  messagePanel.openPopup(button, "after_start", 16);
 }

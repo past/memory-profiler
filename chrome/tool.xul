@@ -52,4 +52,11 @@
       </vbox>
     </vbox>
   </box>
+
+  <panel id="message-panel"
+         type="arrow"
+         fade="slow"
+         noautofocus="true">
+    <label id="message" class="description"/>
+  </panel>
 </window>
