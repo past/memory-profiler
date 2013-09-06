@@ -16,7 +16,7 @@
   <script type="application/javascript" src="graph.js"/>
   <script type="application/javascript" src="memory-profiler.js"/>
   <box flex="1" id="profiler-chrome" class="devtools-responsive-container">
-    <vbox class="profiler-sidebar">
+    <vbox class="profiler-sidebar" flex="1">
       <toolbar class="devtools-toolbar">
         <hbox id="profiler-controls">
           <toolbarbutton id="profiler-start"
@@ -36,20 +36,18 @@
         </hbox>
       </toolbar>
 
-      <vbox id="profiles-list" flex="1" align="center" pack="center">
-        <label id="memory-used" value="&memoryProfilerUI.label;"/>
-      </vbox>
-    </vbox>
+      <hbox flex="1">
+        <vbox id="profiles-list" align="center" pack="top">
+          <label id="memory-used" class="profiler-sidebar-empty-notice"
+                 value="&memoryProfilerUI.label;"/>
+        </vbox>
 
-    <splitter class="devtools-side-splitter"/>
+        <splitter class="devtools-side-splitter"/>
 
-    <vbox flex="1">
-      <toolbar class="devtools-toolbar">
-      </toolbar>
-
-      <vbox flex="1" id="profiler-report">
-        <div id="graph"></div>
-      </vbox>
+        <vbox flex="1" id="profiler-report">
+          <div id="graph"></div>
+        </vbox>
+      </hbox>
     </vbox>
   </box>
 

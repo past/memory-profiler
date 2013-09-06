@@ -7,7 +7,15 @@
   background: hsl(208,11%,27%);
 }
 
-#memory-used {
+.profiler-sidebar-empty-notice {
+  max-width: 176px;
+  padding: 10px;
+  background-color: rgb(61, 69, 76);
+  color: white;
+  font-weight: bold;
+}
+
+.memory-used {
   color: #fff;
   font-size: 5em;
   text-shadow: 1px 1px 2px black, 0 0 0.2em black, 0 0 0.2em black;

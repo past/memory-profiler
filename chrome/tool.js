@@ -95,7 +95,9 @@ function toggleRecording() {
   if (!gRunning) {
     rec.setAttribute("checked", true);
     resetGraph();
-    document.getElementById("memory-used").value = "";
+    let memuseLabel = document.getElementById("memory-used");
+    // memuseLabel.classList.remove("profiler-sidebar-empty-notice");
+    memuseLabel.value = "";
     Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
     Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
 
@@ -175,7 +177,10 @@ function worker() {
 
   let start = Date.now();
   getMemoryFootprint(gUrl, gWindowId).then(mem => {
-    document.getElementById("memory-used").value = formatBytes(mem.total);
+    let memuseLabel = document.getElementById("memory-used");
+    memuseLabel.classList.remove("profiler-sidebar-empty-notice");
+    memuseLabel.classList.add("memory-used");
+    memuseLabel.value = formatBytes(mem.total);
     gMeasurements.total.push(mem.total);
     gMeasurements.dom.push(mem.dom);
     gMeasurements.js.push(mem.js);

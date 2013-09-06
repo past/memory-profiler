@@ -2,7 +2,7 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
-<!ENTITY memoryProfilerUI.label "">
+<!ENTITY memoryProfilerUI.label "There are no profiles yet.">
 <!ENTITY gc.label "GC">
 <!ENTITY cc.label "CC">
 <!ENTITY minimizeMemory.label "Minimize memory">
