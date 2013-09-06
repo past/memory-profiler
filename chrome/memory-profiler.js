@@ -39,7 +39,8 @@ function processMemoryReporters(url, outerId)
   while (e.hasMoreElements()) {
     let mr = e.getNext().QueryInterface(Ci.nsIMemoryMultiReporter);
     // |collectReports| never passes in a |presence| argument.
-    let handleReport = function(aProcess, aUnsafePath, aKind, aUnits, aAmount, aDescription) {
+    let handleReport = function(aProcess, aUnsafePath, aKind,
+                                aUnits, aAmount, aDescription) {
       if (!aUnsafePath.contains("strings/notable/string") &&
           flipBackslashes(aUnsafePath).contains(url) &&
           (!outerId || aUnsafePath.contains(", id=" + outerId))) {
@@ -57,7 +58,11 @@ function processMemoryReporters(url, outerId)
         }
       }
     }
-    mr.collectReports(handleReport, null);
+
+    // We are only interested in the memory footprint of the current page.
+    if (mr.name == "window-objects") {
+      mr.collectReports(handleReport, null);
+    }
   }
   return gResult;
 }
