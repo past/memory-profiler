@@ -29,6 +29,10 @@ let gCanvas;
 let gUrl;
 let gWindowId;
 let gWorking;
+let gProfiles = new Map();
+let gReservedNames = {};
+let gCurProfile;
+let gUid = 0;
 
 function startup(aToolbox) {
  if (!Services.prefs.getBoolPref("javascript.options.mem.notify")) {
@@ -100,6 +104,17 @@ function toggleRecording() {
     memuseLabel.value = "";
     Services.obs.addObserver(gclogger, "cycle-collection-statistics", false);
     Services.obs.addObserver(gclogger, "garbage-collection-statistics", false);
+
+    let profileList = document.querySelector("#profiles-list");
+    gCurProfile = getProfileName();
+    let profile = {
+      name: gCurProfile,
+      uid: ++gUid,
+      measurements: null,
+      events: null
+    };
+    gProfiles.set(profile.name, profile);
+    addProfile(profile);
 
     gInterval = window.setInterval(worker, 1000);
   } else {
@@ -177,10 +192,15 @@ function worker() {
 
   let start = Date.now();
   getMemoryFootprint(gUrl, gWindowId).then(mem => {
-    let memuseLabel = document.getElementById("memory-used");
-    memuseLabel.classList.remove("profiler-sidebar-empty-notice");
-    memuseLabel.classList.add("memory-used");
-    memuseLabel.value = formatBytes(mem.total);
+    let profile = gProfiles.get(gCurProfile);
+    profile.measurements = gMeasurements;
+    profile.events = gEvents;
+    gProfiles.set(profile.name, profile);
+
+    // let memuseLabel = document.getElementById("memory-used");
+    // memuseLabel.classList.remove("profiler-sidebar-empty-notice");
+    // memuseLabel.classList.add("memory-used");
+    // memuseLabel.value = formatBytes(mem.total);
     gMeasurements.total.push(mem.total);
     gMeasurements.dom.push(mem.dom);
     gMeasurements.js.push(mem.js);
@@ -213,4 +233,38 @@ function displayNotification(text, button) {
 
   let messagePanel = document.getElementById("message-panel");
   messagePanel.openPopup(button, "after_start", 16);
+}
+
+function getProfileName() {
+  let num = 1;
+  let name = toolStrings.formatStringFromName("MemoryProfiler.profileName", [num], 1);
+
+  while (gReservedNames.hasOwnProperty([name])) {
+    num += 1;
+    name = toolStrings.formatStringFromName("MemoryProfiler.profileName", [num], 1);
+  }
+
+  gReservedNames[name] = true;
+  return name;
+}
+
+function addProfile(profile) {
+  let parent = document.getElementById("profiles-list");
+  let vbox = document.createElement("vbox");
+  let hbox = document.createElement("hbox");
+  let h3   = document.createElement("h3");
+  let span = document.createElement("span");
+
+  vbox.id = "profile-" + profile.uid;
+  vbox.className = "profiler-sidebar-item";
+
+  h3.textContent = profile.name;
+  span.setAttribute("flex", 1);
+  span.textContent = toolStrings.GetStringFromName("MemoryProfiler.stateIdle");
+
+  hbox.appendChild(span);
+
+  vbox.appendChild(h3);
+  vbox.appendChild(hbox);
+  parent.appendChild(vbox);
 }
