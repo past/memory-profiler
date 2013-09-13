@@ -7,6 +7,9 @@ const { classes: Cc, interfaces: Ci, utils: Cu, results: Cr } = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/devtools/ViewHelpers.jsm");
+Cu.import("resource://gre/modules/osfile.jsm");
+Cu.import("resource://gre/modules/NetUtil.jsm");
 
 XPCOMUtils.defineLazyModuleGetter(this, "EventEmitter",
   "resource:///modules/devtools/shared/event-emitter.js");
@@ -14,15 +17,17 @@ XPCOMUtils.defineLazyModuleGetter(this, "promise",
   "resource://gre/modules/commonjs/sdk/core/promise.js", "Promise");
 XPCOMUtils.defineLazyGetter(this, "toolStrings", () =>
   Services.strings.createBundle("chrome://memory-profiler/locale/strings.properties"));
+XPCOMUtils.defineLazyGetter(this, "L10N", () =>
+  new ViewHelpers.L10N(L10N_BUNDLE));
 
 const require = Cu.import("resource://gre/modules/devtools/Loader.jsm", {}).devtools.require;
 const Sidebar = require("devtools/profiler/sidebar");
 const {
   PROFILE_IDLE,
   PROFILE_RUNNING,
-  PROFILE_COMPLETED
+  PROFILE_COMPLETED,
+  L10N_BUNDLE
 } = require("devtools/profiler/consts");
-
 
 function MemoryController() {
   this.onWindowCreated = this.onWindowCreated.bind(this);
@@ -108,12 +113,9 @@ MemoryController.prototype = {
     this.sidebar.on("save", (_, uid) => {
       let profile = this.profiles.get(uid);
 
-      if (!profile.data)
-        return void Cu.reportError("Can't save profile because there's no data.");
-
       this.openFileDialog({ mode: "save", name: profile.name }).then((file) => {
         if (file)
-          this.saveProfile(file, profile.data);
+          this.saveProfile(file, profile);
       });
     });
 
@@ -308,6 +310,53 @@ MemoryController.prototype = {
     this.url = win.location.href;
     this.windowId = win.QueryInterface(Ci.nsIInterfaceRequestor).
                     getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+  },
+
+  /**
+   * Opens a normal file dialog.
+   *
+   * @params object opts, (optional) property 'mode' can be used to
+   *                      specify which dialog to open. Can be either
+   *                      'save' or 'open' (default is 'open').
+   * @return promise
+   */
+  openFileDialog: function (opts={}) {
+    let deferred = promise.defer();
+
+    let picker = Ci.nsIFilePicker;
+    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(picker);
+    let { name, mode } = opts;
+    let save = mode === "save";
+    let title = L10N.getStr(save ? "profiler.saveFileAs" : "profiler.openFile");
+
+    fp.init(window, title, save ? picker.modeSave : picker.modeOpen);
+    fp.appendFilter("JSON", "*.json");
+    fp.appendFilters(picker.filterText | picker.filterAll);
+
+    if (save)
+      fp.defaultString = (name || "profile") + ".json";
+
+    fp.open((result) => {
+      deferred.resolve(result === picker.returnCancel ? null : fp.file);
+    });
+
+    return deferred.promise;
+  },
+
+  /**
+   * Saves profile data to disk
+   *
+   * @param File file
+   * @param object data
+   *
+   * @return promise
+   */
+  saveProfile: function (file, data) {
+    let encoder = new TextEncoder();
+    let buffer = encoder.encode(JSON.stringify({ profile: data }, null, "  "));
+    let opts = { tmpPath: file.path + ".tmp" };
+
+    return OS.File.writeAtomic(file.path, buffer, opts);
   },
 
   displayNotification: function(text, button) {
