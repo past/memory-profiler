@@ -18,14 +18,16 @@ this.MemoryProfilerPanel = function MemoryProfilerPanel(iframeWindow, toolbox) {
   this.panelWin = iframeWindow;
   this._toolbox = toolbox;
   this._destroyer = null;
+  this.controller = null;
 
   EventEmitter.decorate(this);
 };
 
 MemoryProfilerPanel.prototype = {
   open: function() {
-    let panelWin = this.panelWin;
     let panelLoaded = promise.defer();
+    let panelWin = this.panelWin;
+    this.controller = new panelWin.MemoryController();
 
     // Make sure the iframe content window is ready.
     panelWin.addEventListener("load", function onLoad() {
@@ -34,15 +36,14 @@ MemoryProfilerPanel.prototype = {
     }, true);
 
     return panelLoaded.promise
-      .then(() => this.panelWin.startup(this._toolbox))
+      .then(() => this.controller.startup(this._toolbox))
       .then(() => {
         this.isReady = true;
         this.emit("ready");
         return this;
       })
       .then(null, function onError(aReason) {
-        Cu.reportError("MemoryProfilerPanel open failed. " +
-                       aReason.error + ": " + aReason.message);
+        console.error(aReason);
       });
   },
 
@@ -56,7 +57,7 @@ MemoryProfilerPanel.prototype = {
       return this._destroyer;
     }
 
-    return this._destroyer = this.panelWin.shutdown()
+    return this._destroyer = this.controller.shutdown()
       .then(() => {
         this.isReady = false;
         this.emit("destroyed");

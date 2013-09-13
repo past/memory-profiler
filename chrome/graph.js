@@ -19,9 +19,9 @@ function createCanvas(opts) {
   };
 }
 
-function graph(values, gcevents) {
-  let ctx = gCanvas.context;
-  let element = gCanvas.element;
+function graph(controller, values, gcevents) {
+  let ctx = controller.canvas.context;
+  let element = controller.canvas.element;
   let h = element.clientHeight;
   let w = element.clientWidth;
   let count = values.total.length;
@@ -113,9 +113,9 @@ function graph(values, gcevents) {
   ctx.closePath();
 }
 
-function resetGraph() {
-  let ctx = gCanvas.context;
-  let element = gCanvas.element;
+function resetGraph(controller) {
+  let ctx = controller.canvas.context;
+  let element = controller.canvas.element;
   let h = element.clientHeight;
   let w = element.clientWidth;
 

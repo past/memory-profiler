@@ -37,11 +37,7 @@
       </toolbar>
 
       <hbox flex="1">
-        <vbox id="profiler-sidebar" align="center" pack="top">
-          <vbox id="profiles-list" align="center" pack="top">
-            <label id="memory-used" class="profiler-sidebar-empty-notice"
-                   value="&memoryProfilerUI.label;"/>
-          </vbox>
+        <vbox id="profiles-list" align="center" pack="top">
         </vbox>
 
         <splitter class="devtools-side-splitter"/>
