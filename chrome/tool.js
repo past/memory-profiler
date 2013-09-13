@@ -27,6 +27,7 @@ function MemoryController() {
   this.performCC = this.performCC.bind(this);
   this.toggleRecording = this.toggleRecording.bind(this);
   this.gclogger = this.gclogger.bind(this);
+  EventEmitter.decorate(this);
 }
 
 MemoryController.prototype = {
@@ -154,8 +155,7 @@ MemoryController.prototype = {
       };
       this.profiles.set(profile.name, profile);
       this.sidebar.addProfile(profile);
-      // this.emit("profileCreated", uid);
-      // this.addProfile(profile);
+      this.emit("profileCreated", profile.uid);
 
       this.interval = window.setInterval(this.worker, 1000);
     } else {
@@ -283,26 +283,5 @@ MemoryController.prototype = {
 
     this.reservedNames[name] = true;
     return name;
-  },
-
-  addProfile: function(profile) {
-    let parent = document.getElementById("profiles-list");
-    let vbox = document.createElement("vbox");
-    let hbox = document.createElement("hbox");
-    let h3   = document.createElement("h3");
-    let span = document.createElement("span");
-
-    vbox.id = "profile-" + profile.uid;
-    vbox.className = "profiler-sidebar-item";
-
-    h3.textContent = profile.name;
-    span.setAttribute("flex", 1);
-    span.textContent = toolStrings.GetStringFromName("MemoryProfiler.stateIdle");
-
-    hbox.appendChild(span);
-
-    vbox.appendChild(h3);
-    vbox.appendChild(hbox);
-    parent.appendChild(vbox);
   }
 }
