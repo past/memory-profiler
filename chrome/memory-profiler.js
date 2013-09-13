@@ -35,9 +35,9 @@ function addChildObserversAndUpdate(aUpdateFn)
 
 function processMemoryReporters(url, outerId)
 {
-  let e = gMgr.enumerateMultiReporters();
+  let e = gMgr.enumerateReporters();
   while (e.hasMoreElements()) {
-    let mr = e.getNext().QueryInterface(Ci.nsIMemoryMultiReporter);
+    let mr = e.getNext().QueryInterface(Ci.nsIMemoryReporter);
     // |collectReports| never passes in a |presence| argument.
     let handleReport = function(aProcess, aUnsafePath, aKind,
                                 aUnits, aAmount, aDescription) {
