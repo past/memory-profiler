@@ -99,6 +99,14 @@ MemoryController.prototype = {
 
     let rec = document.getElementById("profiler-start");
     rec.addEventListener("click", this.toggleRecording, false);
+    let imp = document.getElementById("profiler-import");
+    imp.addEventListener("click", () => {
+      this.openFileDialog({ mode: "open" }).then((file) => {
+        if (file)
+          this.loadProfile(file);
+      });
+    }, false);
+
     let gc = document.getElementById("gc");
     gc.addEventListener("click", this.performGC, false);
     let cc = document.getElementById("cc");
@@ -201,8 +209,12 @@ MemoryController.prototype = {
     }
   },
 
-  createProfile: function() {
-    let name = this.getProfileName();
+  createProfile: function (name, opts={}) {
+    if (name && this.getProfileByName(name)) {
+      return this.getProfileByName(name);
+    }
+
+    let name = name || this.getProfileName();
     let profile = {
       name: name,
       uid: ++this.uid,
@@ -220,6 +232,26 @@ MemoryController.prototype = {
     this.emit("profileCreated", profile.uid);
 
     return profile;
+  },
+
+  /**
+   * Lookup an individual profile by its name.
+   *
+   * @param string name name of the profile
+   * @return profile object or null
+   */
+  getProfileByName: function(name) {
+    if (!this.profiles) {
+      return null;
+    }
+
+    for (let [ uid, profile ] of this.profiles) {
+      if (profile.name === name) {
+        return profile;
+      }
+    }
+
+    return null;
   },
 
   performGC: function() {
@@ -357,6 +389,46 @@ MemoryController.prototype = {
     let opts = { tmpPath: file.path + ".tmp" };
 
     return OS.File.writeAtomic(file.path, buffer, opts);
+  },
+
+  /**
+   * Reads profile data from disk
+   *
+   * @param File file
+   * @return promise
+   */
+  loadProfile: function (file) {
+    let deferred = promise.defer();
+    let ch = NetUtil.newChannel(file);
+    ch.contentType = "application/json";
+
+    NetUtil.asyncFetch(ch, (input, status) => {
+      if (!Components.isSuccessCode(status)) throw new Error(status);
+
+      let conv = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+        .createInstance(Ci.nsIScriptableUnicodeConverter);
+      conv.charset = "UTF-8";
+
+      let data = NetUtil.readInputStreamToString(input, input.available());
+      data = conv.ConvertToUnicode(data);
+      this.importProfile(file.leafName, JSON.parse(data), { external: true });
+
+      deferred.resolve();
+    });
+
+    return deferred.promise;
+  },
+
+  importProfile: function (name, data, opts={}) {
+    let profile = this.createProfile(name, { external: opts.external });
+    profile.measurements = data.profile.measurements;
+    profile.events = data.profile.events;
+
+    this.sidebar.setProfileState(profile, PROFILE_COMPLETED);
+    if (!this.sidebar.selectedItem)
+      this.sidebar.selectedItem = this.sidebar.getItemByProfile(profile);
+
+    return profile;
   },
 
   displayNotification: function(text, button) {

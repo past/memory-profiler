@@ -6,3 +6,4 @@
 <!ENTITY cc.label "CC">
 <!ENTITY minimizeMemory.label "Minimize memory">
 <!ENTITY aboutMemory.label "about:memory">
+<!ENTITY importProfile.label "Import…">
