@@ -17,6 +17,12 @@ XPCOMUtils.defineLazyGetter(this, "toolStrings", () =>
 
 const require = Cu.import("resource://gre/modules/devtools/Loader.jsm", {}).devtools.require;
 const Sidebar = require("devtools/profiler/sidebar");
+const {
+  PROFILE_IDLE,
+  PROFILE_RUNNING,
+  PROFILE_COMPLETED
+} = require("devtools/profiler/consts");
+
 
 function MemoryController() {
   this.onWindowCreated = this.onWindowCreated.bind(this);
@@ -32,13 +38,6 @@ function MemoryController() {
 
 MemoryController.prototype = {
   interval: null,
-  measurements: {
-    total: [],
-    dom: [],
-    js: [],
-    other: []
-  },
-  events: [],
   resetPref: null,
   running: false,
   canvas: null,
@@ -47,8 +46,45 @@ MemoryController.prototype = {
   working: null,
   profiles: new Map(),
   reservedNames: {},
-  curProfile: null,
+  _activeUid:  null,
+  _runningUid: null,
   uid: 0,
+
+  get activeProfile() {
+    return this.profiles.get(this._activeUid);
+  },
+
+  set activeProfile(profile) {
+    if (this._activeUid === profile.uid)
+      return;
+
+    this._activeUid = profile.uid;
+    this.draw(profile);
+  },
+
+  set recordingProfile(profile) {
+    let btn = document.getElementById("profiler-start");
+    this._runningUid = profile ? profile.uid : null;
+
+    if (this._runningUid) {
+      btn.setAttribute("checked", true);
+      this.activeProfile = profile;
+    } else {
+      btn.removeAttribute("checked");
+    }
+  },
+
+  get recordingProfile() {
+    return this.profiles.get(this._runningUid);
+  },
+
+  draw: function(profile) {
+    if (profile.measurements.total.length == 0) {
+      return;
+    }
+    resetGraph(this);
+    graph(this, profile);
+  },
 
   startup: function(aToolbox) {
    if (!Services.prefs.getBoolPref("javascript.options.mem.notify")) {
@@ -84,14 +120,7 @@ MemoryController.prototype = {
     this.sidebar.on("select", (_, uid) => {
       let profile = this.profiles.get(uid);
       this.activeProfile = profile;
-
-      if (profile.isReady) {
-        return void this.emit("profileSwitched", profile.uid);
-      }
-
-      profile.once("ready", () => {
-        this.emit("profileSwitched", profile.uid);
-      });
+      this.emit("profileSwitched", profile.uid);
     });
 
     let graphPane = document.getElementById("profiler-report");
@@ -134,45 +163,61 @@ MemoryController.prototype = {
     let browser = window.top.gBrowser.selectedBrowser;
     browser.removeEventListener("DOMWindowCreated", this.onWindowCreated, false);
 
+    this.profiles = null;
+    this.uid = null;
+    this._activeUid = null;
+    this._runningUid = null;
     return promise.resolve(null);
   },
 
   toggleRecording: function() {
-    let rec = document.getElementById("profiler-start");
-    if (!this.running) {
-      rec.setAttribute("checked", true);
+    let profile = this.recordingProfile;
+
+    if (!profile) {
       resetGraph(this);
       Services.obs.addObserver(this.gclogger, "cycle-collection-statistics", false);
       Services.obs.addObserver(this.gclogger, "garbage-collection-statistics", false);
 
-      let profileList = document.querySelector("#profiles-list");
-      this.curProfile = this.getProfileName();
-      let profile = {
-        name: this.curProfile,
-        uid: ++this.uid,
-        measurements: null,
-        events: null
-      };
-      this.profiles.set(profile.name, profile);
-      this.sidebar.addProfile(profile);
-      this.emit("profileCreated", profile.uid);
+      let profile = this.createProfile();
 
       this.interval = window.setInterval(this.worker, 1000);
+      this.sidebar.setProfileState(profile, PROFILE_RUNNING);
+      this.sidebar.selectedItem = this.sidebar.getItemByProfile(profile);
+      this.recordingProfile = profile;
+      this.emit("started");
     } else {
-      rec.removeAttribute("checked");
       Services.obs.removeObserver(this.gclogger, "cycle-collection-statistics", false);
       Services.obs.removeObserver(this.gclogger, "garbage-collection-statistics", false);
 
       window.clearInterval(this.interval);
-      this.measurements = {
+
+      this.sidebar.setProfileState(profile, PROFILE_COMPLETED);
+      this.activeProfile = profile;
+      this.sidebar.selectedItem = this.sidebar.getItemByProfile(profile);
+      this.recordingProfile = null;
+      this.emit("stopped");
+    }
+  },
+
+  createProfile: function() {
+    let name = this.getProfileName();
+    let profile = {
+      name: name,
+      uid: ++this.uid,
+      measurements: {
         total: [],
         dom: [],
         js: [],
         other: []
-      };
-      this.events = [];
-    }
-    this.running = !this.running;
+      },
+      events: []
+    };
+
+    this.profiles.set(profile.uid, profile);
+    this.sidebar.addProfile(profile);
+    this.emit("profileCreated", profile.uid);
+
+    return profile;
   },
 
   performGC: function() {
@@ -233,27 +278,28 @@ MemoryController.prototype = {
 
     let start = Date.now();
     getMemoryFootprint(this.url, this.windowId).then(mem => {
-      let profile = this.profiles.get(this.curProfile);
-      profile.measurements = this.measurements;
-      profile.events = this.events;
-      this.profiles.set(profile.name, profile);
-
-      this.measurements.total.push(mem.total);
-      this.measurements.dom.push(mem.dom);
-      this.measurements.js.push(mem.js);
-      this.measurements.other.push(mem.other);
-      graph(this, this.measurements, this.events);
       let end = Date.now();
       console.log("Duration: "+(end-start)+" ms");
+      let profile = this.recordingProfile;
+      profile.measurements.total.push(mem.total);
+      profile.measurements.dom.push(mem.dom);
+      profile.measurements.js.push(mem.js);
+      profile.measurements.other.push(mem.other);
+
+      if (this._activeUid == this._runningUid) {
+        this.draw(profile);
+      }
       this.working = false;
     }).then(null, console.error);
   },
 
   gclogger: function(subject, topic, data) {
+    let profile = this.recordingProfile;
+    let time = profile.measurements.total.length;
     if (topic == "cycle-collection-statistics") {
-      this.events.push({ type: "cc", time: this.measurements.total.length });
+      profile.events.push({ type: "cc", time: time });
     } else {
-      this.events.push({ type: "gc", time: this.measurements.total.length });
+      profile.events.push({ type: "gc", time: time });
     }
   },
 

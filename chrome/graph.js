@@ -19,7 +19,9 @@ function createCanvas(opts) {
   };
 }
 
-function graph(controller, values, gcevents) {
+function graph(controller, profile) {
+  let values = profile.measurements;
+  let gcevents = profile.events;
   let ctx = controller.canvas.context;
   let element = controller.canvas.element;
   let h = element.clientHeight;
