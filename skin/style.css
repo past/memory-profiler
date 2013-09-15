@@ -7,8 +7,8 @@
   background: hsl(208,11%,27%);
 }
 
-#profiles-list {
-  min-width: 196px;
+.side-menu-widget-container {
+  min-width: 206px;
 }
 
 #graph {
