@@ -21,6 +21,9 @@
         <hbox id="profiler-controls">
           <toolbarbutton id="profiler-start"
             class="devtools-toolbarbutton"/>
+          <toolbarbutton id="profiler-import"
+            class="devtools-toolbarbutton"
+            label="&importProfile.label;"/>
           <toolbarbutton id="gc"
             class="devtools-toolbarbutton color-legend"
             label="&gc.label;"/>
@@ -38,8 +41,6 @@
 
       <hbox flex="1">
         <vbox id="profiles-list" align="center" pack="top">
-          <label id="memory-used" class="profiler-sidebar-empty-notice"
-                 value="&memoryProfilerUI.label;"/>
         </vbox>
 
         <splitter class="devtools-side-splitter"/>
