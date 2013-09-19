@@ -37,6 +37,11 @@
             class="devtools-toolbarbutton"
             label="&aboutMemory.label;"/>
         </hbox>
+
+        <hbox align="center">
+          <label id="sampling-label" value="&sampling.label;" control="sampling"/>
+          <scale class="devtools-toolbarbutton" id="sampling" min="1" max="10"/>
+        </hbox>
       </toolbar>
 
       <hbox flex="1">

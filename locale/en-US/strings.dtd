@@ -7,3 +7,4 @@
 <!ENTITY minimizeMemory.label "Minimize memory">
 <!ENTITY aboutMemory.label "about:memory">
 <!ENTITY importProfile.label "Import…">
+<!ENTITY sampling.label "Sampling interval">

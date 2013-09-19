@@ -42,3 +42,7 @@
   background-image: linear-gradient(rgb(205, 155, 208), rgb(165, 115, 168));
   border-color: rgb(185, 135, 188);
 }
+
+#sampling-label {
+  min-width: 12em;
+}

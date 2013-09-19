@@ -38,6 +38,7 @@ function MemoryController() {
   this.performCC = this.performCC.bind(this);
   this.toggleRecording = this.toggleRecording.bind(this);
   this.gclogger = this.gclogger.bind(this);
+  this.changeInterval = this.changeInterval.bind(this);
   EventEmitter.decorate(this);
 }
 
@@ -54,6 +55,7 @@ MemoryController.prototype = {
   _activeUid:  null,
   _runningUid: null,
   uid: 0,
+  sampling: 1,
 
   get activeProfile() {
     return this.profiles.get(this._activeUid);
@@ -97,6 +99,9 @@ MemoryController.prototype = {
       Services.prefs.setBoolPref("javascript.options.mem.notify", true);
     }
 
+    let label = document.getElementById("sampling-label");
+    label.value = toolStrings.formatStringFromName("MemoryProfiler.samplingLabel", [this.sampling], 1);
+
     let rec = document.getElementById("profiler-start");
     rec.addEventListener("click", this.toggleRecording, false);
     let imp = document.getElementById("profiler-import");
@@ -115,6 +120,9 @@ MemoryController.prototype = {
     minmem.addEventListener("click", this.minimizeMemory, false);
     let about = document.getElementById("about-memory");
     about.addEventListener("click", this.openAboutMemory, false);
+
+    let slider = document.getElementById("sampling");
+    slider.addEventListener("change", this.changeInterval, false);
 
     this.sidebar = new Sidebar(document.querySelector("#profiles-list"));
 
@@ -169,6 +177,8 @@ MemoryController.prototype = {
     minmem.removeEventListener("click", this.minimizeMemory, false);
     let about = document.getElementById("about-memory");
     about.removeEventListener("click", this.openAboutMemory, false);
+    let slider = document.getElementById("sampling");
+    slider.removeEventListener("change", this.changeInterval, false);
 
     let browser = window.top.gBrowser.selectedBrowser;
     browser.removeEventListener("DOMWindowCreated", this.onWindowCreated, false);
@@ -177,25 +187,29 @@ MemoryController.prototype = {
     this.uid = null;
     this._activeUid = null;
     this._runningUid = null;
+    this.sampling = null;
     return promise.resolve(null);
   },
 
   toggleRecording: function() {
     let profile = this.recordingProfile;
+    let slider = document.getElementById("sampling");
 
     if (!profile) {
+      slider.disabled = true;
       resetGraph(this);
       Services.obs.addObserver(this.gclogger, "cycle-collection-statistics", false);
       Services.obs.addObserver(this.gclogger, "garbage-collection-statistics", false);
 
       let profile = this.createProfile();
 
-      this.interval = window.setInterval(this.worker, 1000);
+      this.interval = window.setInterval(this.worker, this.sampling * 1000);
       this.sidebar.setProfileState(profile, PROFILE_RUNNING);
       this.sidebar.selectedItem = this.sidebar.getItemByProfile(profile);
       this.recordingProfile = profile;
       this.emit("started");
     } else {
+      slider.disabled = false;
       Services.obs.removeObserver(this.gclogger, "cycle-collection-statistics", false);
       Services.obs.removeObserver(this.gclogger, "garbage-collection-statistics", false);
 
@@ -335,6 +349,19 @@ MemoryController.prototype = {
     } else {
       profile.events.push({ type: "gc", time: time });
     }
+  },
+
+  changeInterval: function(event) {
+    if (this._runningUid) {
+      // We have to actually reset the slider, as the widet doesn't seem to be
+      // actually disabled.
+      let slider = document.getElementById("sampling");
+      slider.value = this.sampling;
+      return;
+    }
+    this.sampling = event.target.value;
+    let label = document.getElementById("sampling-label");
+    label.value = toolStrings.formatStringFromName("MemoryProfiler.samplingLabel", [this.sampling], 1);
   },
 
   onWindowCreated: function() {
