@@ -327,7 +327,7 @@ MemoryController.prototype = {
     let start = Date.now();
     getMemoryFootprint(this.url, this.windowId).then(mem => {
       let end = Date.now();
-      console.log("Duration: "+(end-start)+" ms");
+      console.log("Memory sampling took "+(end-start)+" ms");
       let profile = this.recordingProfile;
       profile.measurements.total.push(mem.total);
       profile.measurements.dom.push(mem.dom);
